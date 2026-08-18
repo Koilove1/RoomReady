@@ -1,0 +1,603 @@
+:root {
+  --bg: #000000;
+  --surface: #0d1520;
+  --surface-2: #1b2a3a;
+  --text: #eaf4fb;
+  --muted: #8aa9c0;
+  --clean: #10b981;
+  --dirty: #f59e0b;
+  --ooo: #ef4444;
+  --accent: #56ccf2;
+  --on-accent: #00131d;
+  /* Hairline that keeps surfaces readable against pure black. */
+  --line: rgba(86, 204, 242, 0.16);
+  --radius: 14px;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overscroll-behavior-y: none;
+}
+
+.app {
+  min-height: 100%;
+  padding: max(env(safe-area-inset-top), 12px) 12px calc(24px + env(safe-area-inset-bottom));
+}
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--bg);
+  padding-bottom: 10px;
+}
+
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.header-row h1 {
+  font-size: 22px;
+  margin: 4px 0 10px;
+  letter-spacing: -0.02em;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.role-tag {
+  background: rgba(86, 204, 242, 0.14);
+  color: var(--accent);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+
+.role-hint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.bell-btn {
+  background: var(--surface-2);
+  color: var(--text);
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Blue, not amber — amber now means "Needs Cleaning" everywhere else. */
+.demo-banner {
+  background: rgba(86, 204, 242, 0.1);
+  border: 1px solid rgba(86, 204, 242, 0.35);
+  color: var(--accent);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.summary-pill {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 10px 8px;
+  text-align: center;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--muted);
+  color: var(--text);
+  font: inherit;
+  transition: transform 0.08s ease;
+}
+
+.summary-pill:active {
+  transform: scale(0.97);
+}
+
+/* The active filter is outlined and its label brightens. */
+.summary-pill.active {
+  background: var(--surface-2);
+  border-color: var(--accent);
+}
+
+.summary-pill.active .summary-label {
+  color: var(--text);
+}
+
+.summary-pill.status-clean {
+  border-left-color: var(--clean);
+}
+.summary-pill.status-dirty {
+  border-left-color: var(--dirty);
+}
+.summary-pill.status-out_of_order {
+  border-left-color: var(--ooo);
+}
+
+.summary-count {
+  display: block;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.summary-label {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* Search */
+.search-row {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.search-input {
+  padding: 12px 38px 12px 14px;
+  background: var(--surface);
+  border-color: var(--line);
+}
+
+.search-input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.search-clear {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--muted);
+  font-size: 20px;
+  line-height: 1;
+}
+
+/* Floors */
+.room-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.floor-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+}
+
+.floor-caret {
+  color: var(--accent);
+  font-size: 13px;
+  transition: transform 0.15s ease;
+}
+
+.floor-caret.open {
+  transform: rotate(90deg);
+}
+
+.floor-label {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.floor-total {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.floor-counts {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.floor-count {
+  min-width: 26px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.floor-count.status-clean {
+  background: rgba(16, 185, 129, 0.16);
+  color: var(--clean);
+}
+.floor-count.status-dirty {
+  background: rgba(245, 158, 11, 0.16);
+  color: var(--dirty);
+}
+.floor-count.status-out_of_order {
+  background: rgba(239, 68, 68, 0.16);
+  color: var(--ooo);
+}
+
+.room-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  margin: 10px 0 4px;
+}
+
+.room-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  min-height: 92px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--muted);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  transition: transform 0.08s ease;
+}
+
+.room-card:active {
+  transform: scale(0.97);
+}
+
+.room-card.status-clean {
+  border-left-color: var(--clean);
+}
+.room-card.status-dirty {
+  border-left-color: var(--dirty);
+}
+.room-card.status-out_of_order {
+  border-left-color: var(--ooo);
+}
+
+.room-card.readonly {
+  cursor: default;
+}
+
+.room-name {
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.room-status {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.room-card.status-clean .room-status {
+  color: var(--clean);
+}
+.room-card.status-dirty .room-status {
+  color: var(--dirty);
+}
+.room-card.status-out_of_order .room-status {
+  color: var(--ooo);
+}
+
+.room-meta {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: auto;
+}
+
+.muted {
+  color: var(--muted);
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 32px 0;
+}
+
+/* Connection / save problems */
+.alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin: 10px 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.alert.warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.alert .link-btn {
+  color: var(--accent);
+  padding: 4px 2px;
+}
+
+/* Sheets */
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: flex-end;
+  z-index: 20;
+}
+
+.sheet {
+  width: 100%;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  border-radius: 20px 20px 0 0;
+  padding: 10px 18px calc(24px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: slide-up 0.18s ease;
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(24px);
+  }
+}
+
+.sheet-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--surface-2);
+  margin: 4px auto 6px;
+}
+
+.sheet h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.field-label {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+  margin-bottom: -6px;
+}
+
+input {
+  width: 100%;
+  padding: 13px 14px;
+  font-size: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--surface-2);
+  background: var(--bg);
+  color: var(--text);
+}
+
+input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.status-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.status-option {
+  padding: 15px;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 700;
+  text-align: left;
+  padding-left: 18px;
+}
+
+.status-option.status-clean {
+  border-left: 5px solid var(--clean);
+}
+.status-option.status-dirty {
+  border-left: 5px solid var(--dirty);
+}
+.status-option.status-out_of_order {
+  border-left: 5px solid var(--ooo);
+}
+
+.status-option.active {
+  border-color: var(--accent);
+}
+
+button {
+  cursor: pointer;
+  font: inherit;
+}
+
+.sheet > button[type='submit'] {
+  padding: 15px;
+  border-radius: 12px;
+  border: none;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.sheet > button[type='submit']:disabled {
+  opacity: 0.4;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px;
+}
+
+/* Role picker */
+.role-card {
+  width: 100%;
+  max-width: 360px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 26px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.role-card h1 {
+  margin: 0;
+  font-size: 26px;
+  text-align: center;
+}
+
+.role-card p {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 14px;
+  text-align: center;
+}
+
+.role-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.role-btn:active {
+  border-color: var(--accent);
+}
+
+.role-name {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.role-desc {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Passcode / message screens */
+.screen-center {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.passcode-card {
+  width: 100%;
+  max-width: 340px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 26px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.passcode-card h1 {
+  margin: 0;
+  font-size: 26px;
+  text-align: center;
+}
+
+.passcode-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.passcode-card code {
+  background: var(--bg);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.passcode-card button {
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.error-text {
+  color: #f87171 !important;
+  font-size: 13px;
+}

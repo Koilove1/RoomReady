@@ -1,0 +1,151 @@
+import { useEffect, useRef, useState } from 'react';
+import {
+  collection,
+  onSnapshot,
+  orderBy,
+  query,
+  doc,
+  updateDoc,
+  writeBatch,
+  serverTimestamp,
+  Timestamp,
+} from 'firebase/firestore';
+import { db, isFirebaseConfigured } from '../firebase';
+import { loadRooms, saveRooms } from '../localStore';
+import { ROOM_NUMBERS, normalizeStatus } from '../types';
+import type { Room, RoomStatus } from '../types';
+
+/** How long to wait before telling the user the database isn't answering. */
+const SLOW_MS = 8000;
+
+/** Firestore error codes are terse; say what a staff member can act on. */
+export function describeError(err: unknown): string {
+  const code = (err as { code?: string } | null)?.code ?? '';
+  switch (code) {
+    case 'permission-denied':
+    case 'unauthenticated':
+      return 'The database refused the request. Check that Anonymous sign-in is still enabled in Firebase.';
+    case 'unavailable':
+    case 'deadline-exceeded':
+      return "Can't reach the database — check your connection.";
+    case 'failed-precondition':
+    case 'not-found':
+      return 'The Firestore database for this project is missing.';
+    default:
+      return 'Something went wrong talking to the database.';
+  }
+}
+
+export function useRooms() {
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  /** True while still loading past SLOW_MS: offline listeners never call back. */
+  const [slow, setSlow] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const seeded = useRef(false);
+
+  useEffect(() => {
+    if (!db) {
+      setRooms(loadRooms());
+      setLoading(false);
+      return;
+    }
+    const database = db;
+    const q = query(collection(database, 'rooms'), orderBy('name'));
+
+    // Firestore stays silent when the device is offline — no snapshot and no
+    // error — so a timer is the only way out of an endless "Loading rooms…".
+    const slowTimer = setTimeout(() => setSlow(true), SLOW_MS);
+
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const next: Room[] = snap.docs
+          .map((d) => {
+            const data = d.data();
+            return {
+              id: d.id,
+              name: String(data.name),
+              status: normalizeStatus(data.status),
+              updatedBy: data.updatedBy ?? null,
+              updatedAt: (data.updatedAt as Timestamp | null)?.toMillis?.() ?? null,
+              createdAt: (data.createdAt as Timestamp | null)?.toMillis?.() ?? 0,
+            };
+          })
+          // The property has a fixed room list; ignore anything else in the collection.
+          .filter((r) => ROOM_NUMBERS.includes(r.name));
+
+        // Create any of the 62 rooms that don't exist yet (first run on a new project).
+        if (!seeded.current) {
+          seeded.current = true;
+          const present = new Set(next.map((r) => r.name));
+          const missing = ROOM_NUMBERS.filter((name) => !present.has(name));
+          if (missing.length > 0) {
+            const batch = writeBatch(database);
+            for (const name of missing) {
+              batch.set(doc(database, 'rooms', name), {
+                name,
+                status: 'clean',
+                updatedBy: null,
+                updatedAt: null,
+                createdAt: serverTimestamp(),
+              });
+            }
+            batch.commit().catch((err) => {
+              console.error('Failed to create the room list', err);
+              seeded.current = false;
+              setError(describeError(err));
+            });
+          }
+        }
+
+        clearTimeout(slowTimer);
+        setSlow(false);
+        setError(null);
+        setRooms(next);
+        setLoading(false);
+      },
+      (err) => {
+        console.error('Room listener failed', err);
+        clearTimeout(slowTimer);
+        setSlow(false);
+        setError(describeError(err));
+        setLoading(false);
+      },
+    );
+
+    return () => {
+      clearTimeout(slowTimer);
+      unsub();
+    };
+  }, [attempt]);
+
+  /** Tear down the listener and start a fresh one. */
+  function retry() {
+    seeded.current = false;
+    setError(null);
+    setSlow(false);
+    setLoading(true);
+    setAttempt((n) => n + 1);
+  }
+
+  /** Rejects if the change didn't reach the database, so callers can say so. */
+  async function setRoomStatus(roomId: string, status: RoomStatus, updatedBy: string) {
+    if (!isFirebaseConfigured || !db) {
+      const next = rooms.map((r) =>
+        r.id === roomId ? { ...r, status, updatedBy, updatedAt: Date.now() } : r,
+      );
+      saveRooms(next);
+      setRooms(next);
+      return;
+    }
+    await updateDoc(doc(db, 'rooms', roomId), {
+      status,
+      updatedBy,
+      updatedAt: serverTimestamp(),
+    });
+  }
+
+  return { rooms, loading, error, slow, retry, setRoomStatus };
+}

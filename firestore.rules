@@ -1,0 +1,22 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Only signed-in clients (anonymous auth) can touch data. The app's
+    // passcode is a UX gate; this is the actual access boundary.
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    match /rooms/{roomId} {
+      allow read: if signedIn();
+      allow create, update, delete: if signedIn();
+    }
+
+    match /deviceTokens/{token} {
+      allow read: if false;
+      allow create, update: if signedIn();
+      allow delete: if signedIn();
+    }
+  }
+}
