@@ -1,24 +1,20 @@
-import { useState } from 'react';
 import { STATUS_LABEL, STATUS_ORDER } from '../types';
 import type { Room, RoomStatus } from '../types';
 
-const NAME_KEY = 'roomready:housekeeperName';
-
+/** The name is collected once by the name gate, so the sheet only confirms it. */
 export function StatusSheet({
   room,
+  name,
   onClose,
   onSetStatus,
 }: {
   room: Room;
+  name: string;
   onClose: () => void;
-  onSetStatus: (status: RoomStatus, name: string) => void;
+  onSetStatus: (status: RoomStatus) => void;
 }) {
-  const [name, setName] = useState(() => localStorage.getItem(NAME_KEY) ?? '');
-
   function pick(status: RoomStatus) {
-    const trimmed = name.trim() || 'Staff';
-    localStorage.setItem(NAME_KEY, trimmed);
-    onSetStatus(status, trimmed);
+    onSetStatus(status);
     onClose();
   }
 
@@ -27,15 +23,7 @@ export function StatusSheet({
       <div className="sheet" onClick={(e) => e.stopPropagation()}>
         <div className="sheet-handle" />
         <h2>Room {room.name}</h2>
-        <label className="field-label" htmlFor="hk-name">
-          Your name
-        </label>
-        <input
-          id="hk-name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="e.g. Maria"
-        />
+        <p className="sheet-note">Saving as {name}</p>
         <div className="status-options">
           {STATUS_ORDER.map((status) => (
             <button

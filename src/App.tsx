@@ -5,9 +5,11 @@ import { useRooms, describeError } from './hooks/useRooms';
 import { PasscodeGate, isUnlocked } from './components/PasscodeGate';
 import { RoomCard } from './components/RoomCard';
 import { StatusSheet } from './components/StatusSheet';
+import { NameGate } from './components/NameGate';
 import { FloorSection } from './components/FloorSection';
 import { RolePicker, ROLE_LABEL, loadRole, saveRole, clearRole } from './components/RolePicker';
 import type { Role } from './components/RolePicker';
+import { loadName, saveName } from './staffName';
 import { STATUS_ORDER, STATUS_LABEL, FLOOR_IDS, floorOf } from './types';
 import type { Room, RoomStatus } from './types';
 
@@ -16,6 +18,9 @@ type Filter = 'all' | RoomStatus;
 export default function App() {
   const [unlocked, setUnlocked] = useState(isUnlocked);
   const [role, setRole] = useState<Role | null>(loadRole);
+  const [name, setName] = useState(loadName);
+  /** Set when housekeeping is picked, so choosing the role always asks who's holding the phone. */
+  const [askName, setAskName] = useState(false);
   const { rooms, loading, error, slow, retry, setRoomStatus } = useRooms();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>('all');
@@ -71,7 +76,24 @@ export default function App() {
         onPick={(picked) => {
           saveRole(picked);
           setRole(picked);
+          if (picked === 'housekeeping') setAskName(true);
         }}
+      />
+    );
+  }
+
+  // Housekeeping writes to the board, so it signs in with a name before seeing it.
+  if (role === 'housekeeping' && (askName || !name)) {
+    return (
+      <NameGate
+        initial={name}
+        onSubmit={(entered) => {
+          saveName(entered);
+          setName(entered);
+          setAskName(false);
+        }}
+        // There's no board to go back to until a name has been set at least once.
+        onCancel={name ? () => setAskName(false) : undefined}
       />
     );
   }
@@ -82,7 +104,7 @@ export default function App() {
    * A write that never reaches Firestore still shows locally, so warn if it
    * hasn't confirmed — otherwise a lost change looks exactly like a saved one.
    */
-  function saveStatus(room: Room, status: RoomStatus, name: string) {
+  function saveStatus(room: Room, status: RoomStatus) {
     setSaveError(null);
     let settled = false;
     const pending = setTimeout(() => {
@@ -125,6 +147,11 @@ export default function App() {
           <div className="header-title">
             <h1>RoomReady</h1>
             <span className="role-tag">{ROLE_LABEL[role]}</span>
+            {canEdit && (
+              <button className="name-chip" onClick={() => setAskName(true)}>
+                {name}
+              </button>
+            )}
           </div>
           <div className="header-actions">
             <button className="bell-btn" onClick={switchRole}>
@@ -241,8 +268,9 @@ export default function App() {
       {canEdit && selectedRoom && (
         <StatusSheet
           room={selectedRoom}
+          name={name}
           onClose={() => setSelectedId(null)}
-          onSetStatus={(status, name) => saveStatus(selectedRoom, status, name)}
+          onSetStatus={(status) => saveStatus(selectedRoom, status)}
         />
       )}
     </div>
