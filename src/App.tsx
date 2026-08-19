@@ -3,6 +3,7 @@ import './App.css';
 import { ensureSignedIn, isFirebaseConfigured } from './firebase';
 import { useRooms, describeError } from './hooks/useRooms';
 import { PasscodeGate, isUnlocked } from './components/PasscodeGate';
+import { WelcomeScreen } from './components/WelcomeScreen';
 import { RoomCard } from './components/RoomCard';
 import { StatusSheet } from './components/StatusSheet';
 import { NameGate } from './components/NameGate';
@@ -16,6 +17,8 @@ import type { Room, RoomStatus } from './types';
 type Filter = 'all' | RoomStatus;
 
 export default function App() {
+  /** The opening screen shows on every launch; everything after it is a gate. */
+  const [started, setStarted] = useState(false);
   const [unlocked, setUnlocked] = useState(isUnlocked);
   const [role, setRole] = useState<Role | null>(loadRole);
   const [name, setName] = useState(loadName);
@@ -65,6 +68,10 @@ export default function App() {
   }, [visibleRooms]);
 
   const selectedRoom = rooms.find((r) => r.id === selectedId) ?? null;
+
+  if (!started) {
+    return <WelcomeScreen onStart={() => setStarted(true)} />;
+  }
 
   if (!unlocked) {
     return <PasscodeGate onUnlock={() => setUnlocked(true)} />;
