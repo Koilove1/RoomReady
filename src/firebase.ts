@@ -1,5 +1,11 @@
 import { initializeApp, type FirebaseApp } from 'firebase/app';
-import { getFirestore, type Firestore } from 'firebase/firestore';
+import {
+  getFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+  type Firestore,
+} from 'firebase/firestore';
 import { getAuth, signInAnonymously, type Auth } from 'firebase/auth';
 import { getMessaging, isSupported, type Messaging } from 'firebase/messaging';
 
@@ -20,9 +26,29 @@ let app: FirebaseApp | null = null;
 let db: Firestore | null = null;
 let auth: Auth | null = null;
 
+/**
+ * Keep the room cache and the pending-write queue in IndexedDB rather than in
+ * memory. Housekeeping works the floors, so a status tapped in a weak-signal
+ * corridor has to survive the app being closed before it reaches the server,
+ * and the board has to open with the last known state instead of nothing.
+ *
+ * IndexedDB is refused in some private-browsing modes; fall back to the
+ * in-memory cache there rather than failing to start.
+ */
+function createDb(instance: FirebaseApp): Firestore {
+  try {
+    return initializeFirestore(instance, {
+      localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+    });
+  } catch (err) {
+    console.warn('Offline persistence unavailable; using an in-memory cache.', err);
+    return getFirestore(instance);
+  }
+}
+
 if (isFirebaseConfigured) {
   app = initializeApp(firebaseConfig);
-  db = getFirestore(app);
+  db = createDb(app);
   auth = getAuth(app);
 }
 
