@@ -17,11 +17,12 @@ export const STATUS_LABEL: Record<RoomStatus, string> = {
 
 export const STATUS_ORDER: RoomStatus[] = ['dirty', 'out_of_order', 'clean'];
 
-/** The property is a fixed 62 rooms: 101-121, 201-221, 301-320. */
+/** The property is a fixed 62 rooms: 100-113, 200-222, 300-323 and 325 (there is no 324). */
 export const ROOM_NUMBERS: string[] = [
-  ...Array.from({ length: 21 }, (_, i) => String(101 + i)),
-  ...Array.from({ length: 21 }, (_, i) => String(201 + i)),
-  ...Array.from({ length: 20 }, (_, i) => String(301 + i)),
+  ...Array.from({ length: 14 }, (_, i) => String(100 + i)),
+  ...Array.from({ length: 23 }, (_, i) => String(200 + i)),
+  ...Array.from({ length: 24 }, (_, i) => String(300 + i)),
+  '325',
 ];
 
 /** Room numbers are floor-prefixed, so the first digit is the floor. */

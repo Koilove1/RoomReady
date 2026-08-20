@@ -1,6 +1,6 @@
 # RoomReady
 
-Mobile-first housekeeping app for a fixed 62-room property (101-121, 201-221, 301-320).
+Mobile-first housekeeping app for a fixed 62-room property (100-113, 200-222, 300-323 and 325).
 
 On open, the app asks who's using the device:
 
@@ -98,7 +98,17 @@ the room number as the document ID) and marks them Clean. Anything else in the `
 ignored.
 
 To change the property's room list, edit `ROOM_NUMBERS` in `src/types.ts`; new numbers get created
-on the next load.
+on the next load. Numbers you removed are left behind in Firestore as documents the app filters out
+— clear them with the one-off cleanup script:
+
+```sh
+node scripts/prune-rooms.mjs           # dry run: lists what would be deleted
+node scripts/prune-rooms.mjs --delete  # actually deletes them
+```
+
+It uses the same `.env.local` config as the app and signs in anonymously, so it needs no
+service-account key. Run it only once every client has picked up the new build — a stale cached
+client still holding the old list would re-create the numbers you just removed.
 
 ## Project layout
 
