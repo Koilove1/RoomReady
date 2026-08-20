@@ -66,6 +66,10 @@ You have to do these steps yourself since they're tied to your Google account.
 
 - `VITE_APP_PASSCODE` is a **convenience gate** — it stops someone who stumbles onto the URL from
   poking around. It is not real security, because the passcode ships in the client bundle.
+- Five wrong passcodes trigger a lockout that escalates on each repeat: 30 seconds, 1 minute,
+  5 minutes, then 15 minutes. A correct passcode clears the count. The lockout is kept in
+  `localStorage`, so closing the tab doesn't reset it — but like the passcode itself, it only
+  deters someone tapping at a phone, not anyone willing to open devtools.
 - The actual boundary is `firestore.rules`, which requires an authenticated (anonymous) session.
 - If you later want real accountability — knowing which specific housekeeper did what, and being
   able to revoke one person's access — swap anonymous auth for per-user email/password accounts.

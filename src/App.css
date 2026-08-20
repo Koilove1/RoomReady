@@ -606,8 +606,14 @@ button {
   font-size: 13px;
 }
 
+.passcode-card button:disabled,
 .name-card button:disabled {
   opacity: 0.45;
+}
+
+/* Locked out: the field is inert, so it shouldn't look ready for typing. */
+.passcode-card input:disabled {
+  opacity: 0.5;
 }
 
 /* Who the board is being edited as; tap to hand the phone to someone else. */
@@ -633,8 +639,17 @@ button {
 }
 
 /* Opening screen */
+/*
+ * Pinned to the viewport rather than laid out in the document: the opening
+ * screen should sit perfectly still, with no scrolling and no iOS rubber-band
+ * bounce when someone drags it. Its content is short enough to fit even a
+ * phone held sideways, so hiding the overflow can't strand the button.
+ */
 .welcome {
-  min-height: 100%;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
   display: flex;
   flex-direction: column;
   align-items: center;
