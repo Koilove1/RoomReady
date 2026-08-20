@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { STATUS_ORDER } from '../types';
 
 /**
@@ -6,6 +7,18 @@ import { STATUS_ORDER } from '../types';
  * statuses, which is the whole vocabulary of the board behind it.
  */
 export function WelcomeScreen({ onStart }: { onStart: () => void }) {
+  /*
+   * Pinning .welcome keeps its own content still, but the document behind it
+   * can be dragged anyway -- browsers bounce the page past its edges even
+   * when nothing overflows. Clamping the root while this screen is mounted is
+   * the only thing that stops it, and the cleanup hands scrolling back to the
+   * board.
+   */
+  useEffect(() => {
+    document.documentElement.classList.add('no-scroll');
+    return () => document.documentElement.classList.remove('no-scroll');
+  }, []);
+
   return (
     <div className="welcome">
       <div className="welcome-body">

@@ -640,6 +640,19 @@ button {
 
 /* Opening screen */
 /*
+ * Set on <html> while the welcome screen is mounted. Both elements have to be
+ * clamped -- overflow on one alone still leaves the other free to overscroll --
+ * and touch-action stops the drag gesture before it ever becomes a scroll.
+ */
+.no-scroll,
+.no-scroll body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
+/*
  * Pinned to the viewport rather than laid out in the document: the opening
  * screen should sit perfectly still, with no scrolling and no iOS rubber-band
  * bounce when someone drags it. Its content is short enough to fit even a
